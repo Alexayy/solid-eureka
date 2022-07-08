@@ -41,6 +41,12 @@ public class SRCCharacterController : MonoBehaviour
     private float _cameraHeight;
     private float _cameraHeightVelocity;
 
+    private Vector3 stanceCapsuleCenter;
+    private Vector3 stanceCapsuleCenterVelocity;
+
+    private float stanceCapsuleHeight;
+    private float stanceCapsuleHeightVelocity;
+
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -64,7 +70,7 @@ public class SRCCharacterController : MonoBehaviour
         CalculateView();
         CalculateMove();
         CalculateJump();
-        CalculateCameraHeight();
+        CalculateStance();
     }
 
     private void CalculateView()
@@ -110,21 +116,25 @@ public class SRCCharacterController : MonoBehaviour
             playerSettings.JumpingFallOff);
     }
 
-    private void CalculateCameraHeight()
+    private void CalculateStance()
     {
-        var stanceHeight = playerStandStance.CameraHeight;
+        var currentStance = playerStandStance;
 
         if (playerStance == Models.PlayerStance.Crouch)
         {
-            stanceHeight = playerCrouchStance.CameraHeight;
+            currentStance = playerCrouchStance;
         }
         else if (playerStance == Models.PlayerStance.Prone)
         {
-            stanceHeight = playerProneStance.CameraHeight;
+            currentStance = playerProneStance;
         }
         
-        _cameraHeight = Mathf.SmoothDamp(cameraHolder.localPosition.y, stanceHeight, ref _cameraHeightVelocity, playerStanceSmoothing);
+        _cameraHeight = Mathf.SmoothDamp(cameraHolder.localPosition.y, currentStance.CameraHeight, ref _cameraHeightVelocity, playerStanceSmoothing);
         cameraHolder.localPosition = new Vector3(cameraHolder.localPosition.x, _cameraHeight, cameraHolder.localPosition.z);
+
+        _characterController.height = Mathf.SmoothDamp(_characterController.height, currentStance.StanceCollider.height, ref stanceCapsuleHeightVelocity, playerStanceSmoothing);
+        _characterController.center = Vector3.SmoothDamp(_characterController.center,
+            currentStance.StanceCollider.center, ref stanceCapsuleCenterVelocity, playerStanceSmoothing);
     }
     
     private void Jump()
