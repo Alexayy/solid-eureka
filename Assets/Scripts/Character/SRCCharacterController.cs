@@ -21,6 +21,14 @@ public class SRCCharacterController : MonoBehaviour
     public Models.PlayerSettingsModel playerSettings;
     public float viewClampYMin = -70;
     public float viewClampYMax = 80;
+
+    [Header("Gravity")] 
+    public float gravityAmount;
+    public float gravityMin;
+    private float playerGravity;
+
+    public Vector3 jumpingForce;
+    private Vector3 _jumpingForceVelocity;
     
     private void Awake()
     {
@@ -28,6 +36,7 @@ public class SRCCharacterController : MonoBehaviour
 
         _defaultInput.Character.Movement.performed += e => inputMovement = e.ReadValue<Vector2>();
         _defaultInput.Character.View.performed += e => inputView = e.ReadValue<Vector2>();
+        _defaultInput.Character.Jump.performed += e => Jump();
         
         _defaultInput.Enable();
 
@@ -41,6 +50,7 @@ public class SRCCharacterController : MonoBehaviour
     {
         CalculateView();
         CalculateMove();
+        CalculateJump();
     }
 
     private void CalculateView()
@@ -60,9 +70,40 @@ public class SRCCharacterController : MonoBehaviour
         var horizontalSpeed = playerSettings.StrafeSpeed * inputMovement.x * Time.deltaTime;
 
         var newMoveSpeed = new Vector3(horizontalSpeed, 0, verticalSpeed);
-
         newMoveSpeed = transform.TransformDirection(newMoveSpeed);
+
+        if (playerGravity > gravityMin && jumpingForce.y < 0.1f)
+        {
+            playerGravity -= gravityAmount * Time.deltaTime;
+        }
+        
+        if (playerGravity < -1 && _characterController.isGrounded)
+        {
+            playerGravity = -1;
+        }
+
+        if (jumpingForce.y > 0.1f)
+        {
+            playerGravity = 0;
+        }
+
+        newMoveSpeed.y += playerGravity;
+        newMoveSpeed += jumpingForce * Time.deltaTime;
         
         _characterController.Move(newMoveSpeed);
+    }
+
+    private void Jump()
+    {
+        if (!_characterController.isGrounded)
+            return;
+
+        jumpingForce = Vector3.up * playerSettings.JumpingHeight;
+    }
+
+    private void CalculateJump()
+    {
+        jumpingForce = Vector3.SmoothDamp(jumpingForce, Vector3.zero, ref _jumpingForceVelocity,
+            playerSettings.JumpingFallOff);
     }
 }

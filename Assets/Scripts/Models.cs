@@ -20,6 +20,10 @@ public static class Models
         public float ForwardSpeed;
         public float StrafeSpeed;
         public float BackwardsSpeed;
+
+        [Header("Jumping")] 
+        public float JumpingHeight;
+        public float JumpingFallOff;
     }
 
     #endregion
