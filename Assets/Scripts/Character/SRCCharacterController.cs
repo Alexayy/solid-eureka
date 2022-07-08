@@ -6,7 +6,7 @@ using UnityEngine;
 public class SRCCharacterController : MonoBehaviour
 {
     private CharacterController _characterController;
-    
+
     private DefaultInput _defaultInput;
     public Vector2 inputMovement;
     public Vector2 inputView;
@@ -29,7 +29,18 @@ public class SRCCharacterController : MonoBehaviour
 
     public Vector3 jumpingForce;
     private Vector3 _jumpingForceVelocity;
+
+    [Header("Stance")] 
+    public Models.PlayerStance playerStance;
+    public float playerStanceSmoothing;
+
+    public Models.CharacterStance playerStandStance;
+    public Models.CharacterStance playerCrouchStance;
+    public Models.CharacterStance playerProneStance;
     
+    private float _cameraHeight;
+    private float _cameraHeightVelocity;
+
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -37,13 +48,15 @@ public class SRCCharacterController : MonoBehaviour
         _defaultInput.Character.Movement.performed += e => inputMovement = e.ReadValue<Vector2>();
         _defaultInput.Character.View.performed += e => inputView = e.ReadValue<Vector2>();
         _defaultInput.Character.Jump.performed += e => Jump();
-        
+
         _defaultInput.Enable();
 
         _newCameraRotation = cameraHolder.localRotation.eulerAngles;
         _newPlayerRotation = transform.localRotation.eulerAngles;
 
         _characterController = GetComponent<CharacterController>();
+
+        _cameraHeight = cameraHolder.localRotation.y;
     }
 
     private void Update()
@@ -51,16 +64,19 @@ public class SRCCharacterController : MonoBehaviour
         CalculateView();
         CalculateMove();
         CalculateJump();
+        CalculateCameraHeight();
     }
 
     private void CalculateView()
     {
-        _newPlayerRotation.y += playerSettings.ViewXSensitivity * (playerSettings.ViewXInverted ? -inputView.x : inputView.x) * Time.deltaTime;
+        _newPlayerRotation.y += playerSettings.ViewXSensitivity *
+                                (playerSettings.ViewXInverted ? -inputView.x : inputView.x) * Time.deltaTime;
         transform.localRotation = Quaternion.Euler(_newPlayerRotation);
-        
-        _newCameraRotation.x += playerSettings.ViewYSensitivity * (playerSettings.ViewYInverted ? inputView.y : -inputView.y) * Time.deltaTime;
+
+        _newCameraRotation.x += playerSettings.ViewYSensitivity *
+                                (playerSettings.ViewYInverted ? inputView.y : -inputView.y) * Time.deltaTime;
         _newCameraRotation.x = Mathf.Clamp(_newCameraRotation.x, viewClampYMin, viewClampYMax);
-        
+
         cameraHolder.localRotation = Quaternion.Euler(_newCameraRotation);
     }
 
@@ -72,38 +88,51 @@ public class SRCCharacterController : MonoBehaviour
         var newMoveSpeed = new Vector3(horizontalSpeed, 0, verticalSpeed);
         newMoveSpeed = transform.TransformDirection(newMoveSpeed);
 
-        if (playerGravity > gravityMin && jumpingForce.y < 0.1f)
+        if (playerGravity > gravityMin)
         {
             playerGravity -= gravityAmount * Time.deltaTime;
         }
-        
-        if (playerGravity < -1 && _characterController.isGrounded)
-        {
-            playerGravity = -1;
-        }
 
-        if (jumpingForce.y > 0.1f)
+        if (playerGravity < -0.1f && _characterController.isGrounded)
         {
-            playerGravity = 0;
+            playerGravity = -0.1f;
         }
 
         newMoveSpeed.y += playerGravity;
         newMoveSpeed += jumpingForce * Time.deltaTime;
-        
+
         _characterController.Move(newMoveSpeed);
-    }
-
-    private void Jump()
-    {
-        if (!_characterController.isGrounded)
-            return;
-
-        jumpingForce = Vector3.up * playerSettings.JumpingHeight;
     }
 
     private void CalculateJump()
     {
         jumpingForce = Vector3.SmoothDamp(jumpingForce, Vector3.zero, ref _jumpingForceVelocity,
             playerSettings.JumpingFallOff);
+    }
+
+    private void CalculateCameraHeight()
+    {
+        var stanceHeight = playerStandStance.CameraHeight;
+
+        if (playerStance == Models.PlayerStance.Crouch)
+        {
+            stanceHeight = playerCrouchStance.CameraHeight;
+        }
+        else if (playerStance == Models.PlayerStance.Prone)
+        {
+            stanceHeight = playerProneStance.CameraHeight;
+        }
+        
+        _cameraHeight = Mathf.SmoothDamp(cameraHolder.localPosition.y, stanceHeight, ref _cameraHeightVelocity, playerStanceSmoothing);
+        cameraHolder.localPosition = new Vector3(cameraHolder.localPosition.x, _cameraHeight, cameraHolder.localPosition.z);
+    }
+    
+    private void Jump()
+    {
+        if (!_characterController.isGrounded)
+            return;
+
+        jumpingForce = Vector3.up * playerSettings.JumpingHeight;
+        playerGravity = 0;
     }
 }
