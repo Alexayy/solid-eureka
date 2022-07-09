@@ -45,8 +45,8 @@ public class SRCCharacterController : MonoBehaviour
     private Vector3 stanceCapsuleCenterVelocity;
     private float stanceCapsuleHeightVelocity;
 
-    public bool test;
-    
+    private bool _isSprinting;
+
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -56,6 +56,7 @@ public class SRCCharacterController : MonoBehaviour
         _defaultInput.Character.Jump.performed += e => Jump();
         _defaultInput.Character.Crouch.performed += e => Crouch();
         _defaultInput.Character.Prone.performed += e => Prone();
+        _defaultInput.Character.Sprinting.performed += e => ToggleSprint();
 
         _defaultInput.Enable();
 
@@ -90,10 +91,21 @@ public class SRCCharacterController : MonoBehaviour
 
     private void CalculateMove()
     {
-        var verticalSpeed = playerSettings.ForwardSpeed * inputMovement.y * Time.deltaTime;
-        var horizontalSpeed = playerSettings.StrafeSpeed * inputMovement.x * Time.deltaTime;
+        if (inputMovement.y <= 0.2f)
+        {
+            _isSprinting = false;
+        }
+        
+        var verticalSpeed = playerSettings.ForwardSpeed;
+        var horizontalSpeed = playerSettings.StrafeSpeed;
 
-        var newMoveSpeed = new Vector3(horizontalSpeed, 0, verticalSpeed);
+        if (_isSprinting)
+        {
+            verticalSpeed = playerSettings.RunningForwardSpeed;
+            horizontalSpeed = playerSettings.RunningStrafeSpeed;
+        }
+
+        var newMoveSpeed = new Vector3(horizontalSpeed * inputMovement.x * Time.deltaTime, 0,  verticalSpeed * inputMovement.y * Time.deltaTime);
         newMoveSpeed = transform.TransformDirection(newMoveSpeed);
 
         if (playerGravity > gravityMin)
@@ -141,8 +153,14 @@ public class SRCCharacterController : MonoBehaviour
     
     private void Jump()
     {
-        if (!_characterController.isGrounded)
+        if (!_characterController.isGrounded || playerStance == Models.PlayerStance.Prone)
             return;
+
+        if (playerStance == Models.PlayerStance.Crouch)
+        {
+            playerStance = Models.PlayerStance.Stand;
+            return;
+        }
 
         jumpingForce = Vector3.up * playerSettings.JumpingHeight;
         playerGravity = 0;
@@ -181,5 +199,16 @@ public class SRCCharacterController : MonoBehaviour
         var end = new Vector3(feetTransform.position.x, feetTransform.position.y + stanceCheckHeight - _characterController.radius - _stanceCheckErrorMargin, feetTransform.position.z);
         
         return Physics.CheckCapsule(start, end, _characterController.radius, playerMask);
+    }
+
+    private void ToggleSprint()
+    {
+        if (inputMovement.y <= 0.2f)
+        {
+            _isSprinting = false;
+            return;
+        }
+        
+        _isSprinting = !_isSprinting;
     }
 }
