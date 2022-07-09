@@ -301,6 +301,36 @@ MonoScript:
   m_ExecutionOrder: 0
   m_ClassName: SceneObjectIDMapSceneAsset
   m_Namespace: UnityEngine.Rendering.HighDefinition
+--- !u!1 &214614729
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 214614730}
+  m_Layer: 10
+  m_Name: FeetTransform
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &214614730
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 214614729}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: -1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 539763471}
+  m_RootOrder: 1
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &224557189
 GameObject:
   m_ObjectHideFlags: 0
@@ -552,7 +582,7 @@ GameObject:
   - component: {fileID: 539763474}
   - component: {fileID: 539763473}
   - component: {fileID: 539763472}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Player
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -634,6 +664,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1749532926}
+  - {fileID: 214614730}
   m_Father: {fileID: 0}
   m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -649,25 +680,27 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9aa85e308dd390b4cab04b42a007447d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  inputMovement: {x: 0, y: 0}
-  inputView: {x: 0, y: 0}
   cameraHolder: {fileID: 1749532926}
+  feetTransform: {fileID: 214614730}
   playerSettings:
-    ViewXSensitivity: 10
-    ViewYSensitivity: 10
+    ViewXSensitivity: 20
+    ViewYSensitivity: 20
     ViewXInverted: 0
     ViewYInverted: 0
     ForwardSpeed: 4
     StrafeSpeed: 3
     BackwardsSpeed: 2
-    JumpingHeight: 6
-    JumpingFallOff: 1
+    JumpingHeight: 5
+    JumpingFallOff: 0.4
   viewClampYMin: -70
   viewClampYMax: 80
-  gravityAmount: 0.05
+  playerMask:
+    serializedVersion: 2
+    m_Bits: 823
+  gravityAmount: 0.03
   gravityMin: -3
   jumpingForce: {x: 0, y: 0, z: 0}
-  playerStance: 0
+  playerStance: 2
   playerStanceSmoothing: 0.3
   playerStandStance:
     CameraHeight: 0.7
@@ -678,6 +711,7 @@ MonoBehaviour:
   playerProneStance:
     CameraHeight: -0.5
     StanceCollider: {fileID: 539763474}
+  test: 0
 --- !u!143 &539763473
 CharacterController:
   m_ObjectHideFlags: 0
@@ -736,7 +770,7 @@ GameObject:
   - component: {fileID: 553458194}
   - component: {fileID: 553458193}
   - component: {fileID: 553458192}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: Camera
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -1288,7 +1322,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1749532926}
-  m_Layer: 0
+  m_Layer: 10
   m_Name: CameraHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}

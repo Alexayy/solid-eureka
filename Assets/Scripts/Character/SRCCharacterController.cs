@@ -8,19 +8,21 @@ public class SRCCharacterController : MonoBehaviour
     private CharacterController _characterController;
 
     private DefaultInput _defaultInput;
-    public Vector2 inputMovement;
-    public Vector2 inputView;
+    private Vector2 inputMovement;
+    private Vector2 inputView;
 
     private Vector2 _newCameraRotation;
     private Vector2 _newPlayerRotation;
 
     [Header("References")] 
     public Transform cameraHolder;
+    public Transform feetTransform;
 
     [Header("Settings")] 
     public Models.PlayerSettingsModel playerSettings;
     public float viewClampYMin = -70;
     public float viewClampYMax = 80;
+    public LayerMask playerMask;
 
     [Header("Gravity")] 
     public float gravityAmount;
@@ -33,20 +35,18 @@ public class SRCCharacterController : MonoBehaviour
     [Header("Stance")] 
     public Models.PlayerStance playerStance;
     public float playerStanceSmoothing;
-
     public Models.CharacterStance playerStandStance;
     public Models.CharacterStance playerCrouchStance;
     public Models.CharacterStance playerProneStance;
-    
+    private float _stanceCheckErrorMargin = 0.05f;
     private float _cameraHeight;
     private float _cameraHeightVelocity;
 
-    private Vector3 stanceCapsuleCenter;
     private Vector3 stanceCapsuleCenterVelocity;
-
-    private float stanceCapsuleHeight;
     private float stanceCapsuleHeightVelocity;
 
+    public bool test;
+    
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -54,6 +54,8 @@ public class SRCCharacterController : MonoBehaviour
         _defaultInput.Character.Movement.performed += e => inputMovement = e.ReadValue<Vector2>();
         _defaultInput.Character.View.performed += e => inputView = e.ReadValue<Vector2>();
         _defaultInput.Character.Jump.performed += e => Jump();
+        _defaultInput.Character.Crouch.performed += e => Crouch();
+        _defaultInput.Character.Prone.performed += e => Prone();
 
         _defaultInput.Enable();
 
@@ -144,5 +146,40 @@ public class SRCCharacterController : MonoBehaviour
 
         jumpingForce = Vector3.up * playerSettings.JumpingHeight;
         playerGravity = 0;
+    }
+
+    private void Crouch()
+    {
+        if (playerStance == Models.PlayerStance.Crouch)
+        {
+            if (StanceCheck(playerStandStance.StanceCollider.height))
+            {
+                return;
+            }
+            
+            playerStance = Models.PlayerStance.Stand;
+            return;
+        }
+        
+        if (StanceCheck(playerCrouchStance.StanceCollider.height))
+        {
+            return;
+        }
+        
+        playerStance = Models.PlayerStance.Crouch;
+    }
+
+    private void Prone()
+    {
+        playerStance = Models.PlayerStance.Prone;
+    }
+
+    private bool StanceCheck(float stanceCheckHeight)
+    {
+        var start = 
+            new Vector3(feetTransform.position.x, feetTransform.position.y + _characterController.radius + _stanceCheckErrorMargin, feetTransform.position.z);
+        var end = new Vector3(feetTransform.position.x, feetTransform.position.y + stanceCheckHeight - _characterController.radius - _stanceCheckErrorMargin, feetTransform.position.z);
+        
+        return Physics.CheckCapsule(start, end, _characterController.radius, playerMask);
     }
 }
