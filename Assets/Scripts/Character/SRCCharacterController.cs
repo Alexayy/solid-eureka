@@ -47,6 +47,9 @@ public class SRCCharacterController : MonoBehaviour
 
     private bool _isSprinting;
 
+    private Vector3 _newMoveSpeed;
+    private Vector3 _newMoveSpeedVelocity;
+
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -57,6 +60,7 @@ public class SRCCharacterController : MonoBehaviour
         _defaultInput.Character.Crouch.performed += e => Crouch();
         _defaultInput.Character.Prone.performed += e => Prone();
         _defaultInput.Character.Sprinting.performed += e => ToggleSprint();
+        _defaultInput.Character.SprintReleased.performed += e => StopSprint();
 
         _defaultInput.Enable();
 
@@ -105,8 +109,28 @@ public class SRCCharacterController : MonoBehaviour
             horizontalSpeed = playerSettings.RunningStrafeSpeed;
         }
 
-        var newMoveSpeed = new Vector3(horizontalSpeed * inputMovement.x * Time.deltaTime, 0,  verticalSpeed * inputMovement.y * Time.deltaTime);
-        newMoveSpeed = transform.TransformDirection(newMoveSpeed);
+        if (!_characterController.isGrounded)
+        {
+            playerSettings.SpeedEffector = playerSettings.FallingSpeedEffector;
+        } else if (playerStance == Models.PlayerStance.Crouch)
+        {
+            playerSettings.SpeedEffector = playerSettings.CrouchSpeedEffector;
+        } else if (playerStance == Models.PlayerStance.Prone)
+        {
+            playerSettings.SpeedEffector = playerSettings.ProneSpeedEffector;
+        }
+        else
+        {
+            playerSettings.SpeedEffector = 1;
+        }
+        
+        verticalSpeed *= playerSettings.SpeedEffector;
+        horizontalSpeed *= playerSettings.SpeedEffector;
+
+        _newMoveSpeed = Vector3.SmoothDamp(_newMoveSpeed, 
+            new Vector3(horizontalSpeed * inputMovement.x * Time.deltaTime, 0,  verticalSpeed * inputMovement.y * Time.deltaTime), 
+            ref _newMoveSpeedVelocity, _characterController.isGrounded ? playerSettings.MovementSmoothing : playerSettings.FallingSmoothing);
+        var moveSpeed = transform.TransformDirection(_newMoveSpeed);
 
         if (playerGravity > gravityMin)
         {
@@ -118,10 +142,10 @@ public class SRCCharacterController : MonoBehaviour
             playerGravity = -0.1f;
         }
 
-        newMoveSpeed.y += playerGravity;
-        newMoveSpeed += jumpingForce * Time.deltaTime;
+        moveSpeed.y += playerGravity;
+        moveSpeed += jumpingForce * Time.deltaTime;
 
-        _characterController.Move(newMoveSpeed);
+        _characterController.Move(moveSpeed);
     }
 
     private void CalculateJump()
@@ -158,6 +182,11 @@ public class SRCCharacterController : MonoBehaviour
 
         if (playerStance == Models.PlayerStance.Crouch)
         {
+            if (StanceCheck(playerStandStance.StanceCollider.height))
+            {
+                return;
+            }
+            
             playerStance = Models.PlayerStance.Stand;
             return;
         }
@@ -210,5 +239,11 @@ public class SRCCharacterController : MonoBehaviour
         }
         
         _isSprinting = !_isSprinting;
+    }
+    
+    private void StopSprint()
+    {
+        if (playerSettings.SprintingHold)
+            _isSprinting = false;
     }
 }
