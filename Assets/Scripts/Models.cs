@@ -55,4 +55,18 @@ public static class Models
         public CapsuleCollider StanceCollider;
     }
     #endregion
+
+    #region Weapons
+
+    [Serializable]
+    public class WeaponModel
+    {
+        [Header("Sway")] 
+        public float SwayAmount;
+        public bool SwayYInverted;
+        public bool SwayXInverted;
+        public float SwaySmoothing;
+    }
+
+    #endregion
 }

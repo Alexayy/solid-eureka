@@ -9,7 +9,9 @@ public class SRCCharacterController : MonoBehaviour
 
     private DefaultInput _defaultInput;
     private Vector2 inputMovement;
-    private Vector2 inputView;
+    
+    [HideInInspector]
+    public Vector2 inputView;
 
     private Vector2 _newCameraRotation;
     private Vector2 _newPlayerRotation;
@@ -50,6 +52,9 @@ public class SRCCharacterController : MonoBehaviour
     private Vector3 _newMoveSpeed;
     private Vector3 _newMoveSpeedVelocity;
 
+    [Header("Weapon")] 
+    public SRCWeaponController currentWeapon;
+
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -70,6 +75,11 @@ public class SRCCharacterController : MonoBehaviour
         _characterController = GetComponent<CharacterController>();
 
         _cameraHeight = cameraHolder.localRotation.y;
+
+        if (currentWeapon)
+        {
+            currentWeapon.Initialize(this);
+        }
     }
 
     private void Update()
