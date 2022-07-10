@@ -8,8 +8,9 @@ public class SRCCharacterController : MonoBehaviour
     private CharacterController _characterController;
 
     private DefaultInput _defaultInput;
-    private Vector2 inputMovement;
     
+    [HideInInspector]
+    public Vector2 inputMovement;
     [HideInInspector]
     public Vector2 inputView;
 
