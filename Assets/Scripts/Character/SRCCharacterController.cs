@@ -48,7 +48,8 @@ public class SRCCharacterController : MonoBehaviour
     private Vector3 stanceCapsuleCenterVelocity;
     private float stanceCapsuleHeightVelocity;
 
-    private bool _isSprinting;
+    [HideInInspector]
+    public bool isSprinting;
 
     private Vector3 _newMoveSpeed;
     private Vector3 _newMoveSpeedVelocity;
@@ -109,13 +110,13 @@ public class SRCCharacterController : MonoBehaviour
     {
         if (inputMovement.y <= 0.2f)
         {
-            _isSprinting = false;
+            isSprinting = false;
         }
         
         var verticalSpeed = playerSettings.ForwardSpeed;
         var horizontalSpeed = playerSettings.StrafeSpeed;
 
-        if (_isSprinting)
+        if (isSprinting)
         {
             verticalSpeed = playerSettings.RunningForwardSpeed;
             horizontalSpeed = playerSettings.RunningStrafeSpeed;
@@ -253,16 +254,16 @@ public class SRCCharacterController : MonoBehaviour
     {
         if (inputMovement.y <= 0.2f)
         {
-            _isSprinting = false;
+            isSprinting = false;
             return;
         }
         
-        _isSprinting = !_isSprinting;
+        isSprinting = !isSprinting;
     }
     
     private void StopSprint()
     {
         if (playerSettings.SprintingHold)
-            _isSprinting = false;
+            isSprinting = false;
     }
 }

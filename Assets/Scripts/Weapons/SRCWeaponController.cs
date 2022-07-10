@@ -42,6 +42,12 @@ public class SRCWeaponController : MonoBehaviour
             return;
         }
 
+        CalculateWeaponRotation();
+        SetWeaponAnimations();
+    }
+
+    private void CalculateWeaponRotation()
+    {
         weaponAnimator.speed = _characterController.weaponAnimationSpeed;
         
         _targetWeaponRotation.y += settings.SwayAmount * (settings.SwayXInverted ? -_characterController.inputView.x : _characterController.inputView.x) * Time.deltaTime;
@@ -61,5 +67,10 @@ public class SRCWeaponController : MonoBehaviour
         _newWeaponMovementRotation = Vector3.SmoothDamp(_newWeaponMovementRotation, _targetWeaponMovementRotation, ref _newWeaponMovementRotationVelocity, settings.MovementSwaySmoothing);
         
         transform.localRotation = Quaternion.Euler(_newWeaponRotation + _newWeaponMovementRotation);
+    }
+
+    private void SetWeaponAnimations()
+    {
+        weaponAnimator.SetBool("IsSprinting", _characterController.isSprinting);
     }
 }
