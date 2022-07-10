@@ -27,6 +27,17 @@ public class SRCWeaponController : MonoBehaviour
     private bool _isGroundedTrigger;
 
     public float fallingDelay;
+
+    [Header("Weapon Sway Breathing")] 
+    public Transform weaponSwayObj;
+
+    public float swayAmountA = 1;
+    public float swayAmountB = 2;
+    public float swayScale = 600;
+    public float swayLerpSpeed = 14;
+
+    public float swayTime;
+    public Vector3 swayPosition;
     
     private void Start()
     {
@@ -48,6 +59,7 @@ public class SRCWeaponController : MonoBehaviour
 
         CalculateWeaponRotation();
         SetWeaponAnimations();
+        CalculateWaponSway();
     }
 
     public void TriggerJump()
@@ -101,5 +113,25 @@ public class SRCWeaponController : MonoBehaviour
         
         weaponAnimator.SetBool("IsSprinting", _characterController.isSprinting);
         weaponAnimator.SetFloat("weaponAnimationSpeed", _characterController.weaponAnimationSpeed);
+    }
+
+    private void CalculateWaponSway()
+    {
+        var targetPosition = LissajousCurve(swayTime, swayAmountA, swayAmountB) / swayScale;
+
+        swayPosition = Vector3.Lerp(swayPosition, targetPosition, Time.smoothDeltaTime * swayLerpSpeed);
+        swayTime += Time.deltaTime;
+
+        if (swayTime > 6.3f)
+        {
+            swayTime = 0;
+        }
+
+        weaponSwayObj.localPosition = swayPosition;
+    }
+    
+    private Vector3 LissajousCurve(float time, float a, float b)
+    {
+        return new Vector3(Mathf.Sin(time), a * Mathf.Sin(b * time + Mathf.PI));
     }
 }
