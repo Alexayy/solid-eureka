@@ -3,6 +3,9 @@ using UnityEngine;
 public class SRCWeaponController : MonoBehaviour
 {
     private SRCCharacterController _characterController;
+
+    [Header("References")] 
+    public Animator weaponAnimator;
     
     [Header("Settings")] 
     public Models.WeaponModel settings;
@@ -38,6 +41,8 @@ public class SRCWeaponController : MonoBehaviour
         {
             return;
         }
+
+        weaponAnimator.speed = _characterController.weaponAnimationSpeed;
         
         _targetWeaponRotation.y += settings.SwayAmount * (settings.SwayXInverted ? -_characterController.inputView.x : _characterController.inputView.x) * Time.deltaTime;
         _targetWeaponRotation.x += settings.SwayAmount * (settings.SwayYInverted ? _characterController.inputView.y : -_characterController.inputView.y) * Time.deltaTime;
