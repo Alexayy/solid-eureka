@@ -64,6 +64,9 @@ public class SRCCharacterController : MonoBehaviour
     [HideInInspector]
     public bool isFalling;
 
+    [Header("Aiming in")] 
+    public bool isAimingIn;
+
     private void Awake()
     {
         _defaultInput = new DefaultInput();
@@ -75,6 +78,9 @@ public class SRCCharacterController : MonoBehaviour
         _defaultInput.Character.Prone.performed += e => Prone();
         _defaultInput.Character.Sprinting.performed += e => ToggleSprint();
         _defaultInput.Character.SprintReleased.performed += e => StopSprint();
+        
+        _defaultInput.Weapon.Fire2Pressed.performed += e => AimingInPressed();
+        _defaultInput.Weapon.Fire2Released.performed += e => AimingInReleased();
 
         _defaultInput.Enable();
 
@@ -100,8 +106,28 @@ public class SRCCharacterController : MonoBehaviour
         CalculateMove();
         CalculateJump();
         CalculateStance();
+        
+        CalculateAimingIn();
     }
 
+    private void AimingInPressed()
+    {
+        isAimingIn = true;
+    }
+
+    private void AimingInReleased()
+    {
+        isAimingIn = false;
+    }
+
+    private void CalculateAimingIn()
+    {
+        if (!currentWeapon) 
+            return;
+
+        currentWeapon.isAimingIn = isAimingIn;
+    }
+     
     private void SetIsGrounded()
     {
         isGrounded = Physics.CheckSphere(feetTransform.position, playerSettings.isGroundedRadius, groundMask);
